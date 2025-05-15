@@ -5,7 +5,7 @@ server/node_modules/
 .DS_Store
 
 # Python
-recommendation-service/venv/
+server/recommendation-service/venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -17,4 +17,3 @@ server/.env
 
 # VS Code
 .vscode/
-
