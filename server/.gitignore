@@ -1,2 +1,19 @@
+# Node.js
 node_modules/
+server/node_modules/
+*.log
+.DS_Store
+
+# Python
+server/recommendation-service/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment
+server/.env
 .env
+
+# VS Code
+.vscode/
