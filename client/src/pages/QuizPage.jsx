@@ -144,6 +144,19 @@ const QuizPage = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const handleNextQuestion = () => {
+    if (typeof selectedAnswers[currentQuestion.id] === 'undefined') {
+      alert('Please select an answer before proceeding');
+      return;
+    }
+    
+    if (currentSet < totalSets - 1) {
+      setCurrentSet(prev => prev + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
   const handleAnswerSelect = (qId, optionIndex) => {
     setSelectedAnswers((prev) => ({
       ...prev,
@@ -154,7 +167,10 @@ const QuizPage = () => {
   const handleSubmit = () => {
     let score = 0;
     currentQuestions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correct) score++;
+      // Only count answered questions
+      if (typeof selectedAnswers[q.id] !== 'undefined') {
+        if (selectedAnswers[q.id] === q.correctAnswer) score++; // Fixed property name
+      }
     });
     localStorage.setItem('quizScore', score);
     navigate('/results'); // Ensure you have a results page
@@ -238,14 +254,12 @@ const QuizPage = () => {
           >
             Previous
           </button>
-          <button
-            onClick={() =>
-              currentSet < totalSets - 1 ? setCurrentSet((prev) => prev + 1) : handleSubmit()
-            }
-            className="px-6 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:opacity-90 text-white"
-          >
-            {currentSet < totalSets - 1 ? 'Next Question' : 'Submit Test'}
-          </button>
+           <button
+                onClick={handleNextQuestion}
+                className="px-6 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:opacity-90 text-white"
+            >
+                {currentSet < totalSets - 1 ? 'Next Question' : 'Submit Test'}
+            </button>
         </div>
       </div>
     </div>
