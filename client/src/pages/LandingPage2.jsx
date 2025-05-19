@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const LandingPage2 = () => {
     const [expanded, setExpanded] = useState(false);
@@ -42,7 +43,7 @@ const LandingPage2 = () => {
 
                         <div className="relative hidden md:items-center md:justify-center md:inline-flex group">
                             <div className="absolute transition-all duration-200 rounded-full -inset-px bg-gradient-to-r from-cyan-500 to-purple-500 group-hover:shadow-lg group-hover:shadow-cyan-500/50"></div>
-                            <a href="#" className="relative inline-flex items-center justify-center px-6 py-2 text-base font-normal text-white bg-black border border-transparent rounded-full" role="button"> Start free trial </a>
+                            <Link to="/quiz" className="relative inline-flex items-center justify-center px-6 py-2 text-base font-normal text-white bg-black border border-transparent rounded-full" role="button"> Take Free Test </Link>
                         </div>
                     </div>
 
@@ -147,7 +148,7 @@ const LandingPage2 = () => {
                             </div>
 
                             <div className="absolute inset-0">
-                                <img className="object-cover w-full h-full opacity-50" src="https://images.pexels.com/photos/32056657/pexels-photo-32056657/free-photo-of-black-and-white-close-up-of-a-farm-cow.jpeg?auto=compress&cs=tinysrgb&w=1200&lazy=load" alt="texture" />
+                                <img className="object-cover w-full h-full opacity-50" src="https://images.pexels.com/photos/14598237/pexels-photo-14598237.jpeg?auto=compress&cs=tinysrgb&w=1200&lazy=load" alt="texture" />
                             </div>
 
                             <div className="relative flex flex-col items-center justify-center h-full py-12">
