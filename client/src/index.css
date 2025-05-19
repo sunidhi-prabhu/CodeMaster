@@ -1,3 +1,10 @@
+@keyframes twinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.animate-twinkle {
+  animation: twinkle infinite;
+}
 @import "tailwindcss";
 /* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
