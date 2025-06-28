@@ -1,0 +1,142 @@
+[
+  {
+    "id": "course1",
+    "title": "Machine Learning Basics",
+    "description": "Learn how ML works and how to build simple models from scratch.",
+    "tags": ["ML", "AI", "data science"],
+    "profession": ["Data Scientist", "Engineer"]
+  },
+  {
+    "id": "course2",
+    "title": "Frontend Development with React",
+    "description": "Master React to build interactive user interfaces and single-page apps.",
+    "tags": ["React", "JavaScript", "web development"],
+    "profession": ["Frontend Developer", "Full-Stack Developer"]
+  },
+  {
+    "id": "course3",
+    "title": "Advanced Python",
+    "description": "Explore advanced Python features, best practices, and performance tips.",
+    "tags": ["Python", "backend", "advanced"],
+    "profession": ["Developer", "Data Scientist"]
+  },
+  {
+    "id": "course4",
+    "title": "Deep Learning Foundations",
+    "description": "Dive into neural networks, TensorFlow, and PyTorch to build deep learning models.",
+    "tags": ["deep learning", "neural networks", "AI"],
+    "profession": ["Data Scientist", "ML Engineer"]
+  },
+  {
+    "id": "course5",
+    "title": "Java Basics",
+    "description": "Get started with Java syntax, OOP principles, and basic data structures.",
+    "tags": ["Java", "basics", "OOP"],
+    "profession": ["Software Engineer", "Backend Developer"]
+  },
+  {
+    "id": "course6",
+    "title": "Advanced Java",
+    "description": "Learn generics, concurrency, streams, and design patterns in Java.",
+    "tags": ["Java", "advanced", "concurrency"],
+    "profession": ["Software Engineer", "Architect"]
+  },
+  {
+    "id": "course7",
+    "title": "Data Structures & Algorithms in Java",
+    "description": "Implement and analyze key data structures and algorithms using Java.",
+    "tags": ["DSA", "Java", "algorithms"],
+    "profession": ["Software Engineer", "Developer"]
+  },
+  {
+    "id": "course8",
+    "title": "Data Structures & Algorithms in Python",
+    "description": "Practice essential DSA concepts using Python for interviews and projects.",
+    "tags": ["DSA", "Python", "algorithms"],
+    "profession": ["Software Engineer", "Developer"]
+  },
+  {
+    "id": "course9",
+    "title": "DSA with C/C++",
+    "description": "Master data structures and algorithms in C and C++ for performance-critical apps.",
+    "tags": ["DSA", "C", "C++"],
+    "profession": ["Software Engineer", "Embedded Developer"]
+  },
+  {
+    "id": "course10",
+    "title": "JavaScript Basics",
+    "description": "Understand JS syntax, DOM manipulation, and event handling in the browser.",
+    "tags": ["JavaScript", "basics", "web development"],
+    "profession": ["Frontend Developer", "Full-Stack Developer"]
+  },
+  {
+    "id": "course11",
+    "title": "JavaScript Advanced Patterns",
+    "description": "Learn closures, prototypes, async/await, and modern ES6+ features.",
+    "tags": ["JavaScript", "advanced", "ES6+"],
+    "profession": ["Frontend Developer", "Full-Stack Developer"]
+  },
+  {
+    "id": "course12",
+    "title": "Web Development Basics",
+    "description": "HTML, CSS & JS fundamentals to build static and responsive web pages.",
+    "tags": ["HTML", "CSS", "JavaScript"],
+    "profession": ["Web Developer", "Frontend Developer"]
+  },
+  {
+    "id": "course13",
+    "title": "Full-Stack JavaScript Backend",
+    "description": "Build RESTful APIs using Node.js, Express, and MongoDB.",
+    "tags": ["Node.js", "Express", "backend"],
+    "profession": ["Backend Developer", "Full-Stack Developer"]
+  },
+  {
+    "id": "course14",
+    "title": "Spring Boot Microservices",
+    "description": "Create scalable microservices with Spring Boot, JPA, and Docker.",
+    "tags": ["Spring Boot", "Java", "microservices"],
+    "profession": ["Backend Developer", "Software Architect"]
+  },
+  {
+    "id": "course15",
+    "title": "HTML, CSS & Advanced Layouts",
+    "description": "Master CSS Grid, Flexbox, and responsive design techniques.",
+    "tags": ["HTML", "CSS", "responsive design"],
+    "profession": ["Web Designer", "Frontend Developer"]
+  },
+  {
+    "id": "course16",
+    "title": "REST API Design",
+    "description": "Best practices for designing, documenting, and testing RESTful services.",
+    "tags": ["API", "REST", "documentation"],
+    "profession": ["Backend Developer", "API Engineer"]
+  },
+  {
+    "id": "course17",
+    "title": "DevOps Essentials",
+    "description": "CI/CD pipelines, Docker, Kubernetes, and infrastructure as code.",
+    "tags": ["DevOps", "Docker", "CI/CD"],
+    "profession": ["DevOps Engineer", "SRE"]
+  },
+  {
+    "id": "course18",
+    "title": "Data Science with R",
+    "description": "Statistical analysis, visualization, and machine learning using R.",
+    "tags": ["data science", "R", "statistics"],
+    "profession": ["Data Scientist", "Analyst"]
+  },
+  {
+    "id": "course19",
+    "title": "Natural Language Processing",
+    "description": "Text preprocessing, embeddings, and building NLP pipelines.",
+    "tags": ["NLP", "text", "transformers"],
+    "profession": ["ML Engineer", "Data Scientist"]
+  },
+  {
+    "id": "course20",
+    "title": "Cloud Computing Fundamentals",
+    "description": "Learn AWS/GCP basics, virtual networks, and cloud storage services.",
+    "tags": ["cloud", "AWS", "GCP"],
+    "profession": ["Cloud Engineer", "DevOps Engineer"]
+  }
+]

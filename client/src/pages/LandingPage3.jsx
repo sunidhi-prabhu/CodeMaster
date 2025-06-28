@@ -1,10 +1,103 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
-const LandingPage2 = () => {
+const tagOptions = [
+  'python', 'machine learning', 'ai', 'beginner', 'frontend',
+  'javascript', 'programming', 'react', 'scikit-learn'
+];
+
+const LandingPage3 = () => {
     const [expanded, setExpanded] = useState(false);
+    const [profession] = useState('React Developer')
+    const [preferences, setPreferences] = useState(['python', 'machine learning', 'ai'])
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [activeTagIndex, setActiveTagIndex] = useState(-1);
+    const [quizResult] = useState({ course: 'Intro to Javascript', score: 92.5 })
+    const [recommendations, setRecommendations] = useState(null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [tagInput, setTagInput] = useState('')
+    const [allTags, setAllTags] = useState([])
+    const [filteredTags, setFilteredTags] = useState([])
 
-    return (
+    
+
+  useEffect(() => {
+        const filtered = tagOptions.filter(tag => 
+            tag.toLowerCase().includes(tagInput.toLowerCase()) &&
+            !preferences.includes(tag)
+        );
+        setFilteredTags(filtered);
+        setActiveTagIndex(-1);
+    }, [tagInput, preferences]);
+
+    // Handle keyboard navigation in dropdown
+    const handleKeyDown = (e) => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActiveTagIndex(prev => Math.min(prev + 1, filteredTags.length - 1));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActiveTagIndex(prev => Math.max(prev - 1, -1));
+        } else if (e.key === 'Enter' && activeTagIndex >= 0) {
+            e.preventDefault();
+            addTag(filteredTags[activeTagIndex]);
+        } else if (e.key === 'Enter' && tagInput && filteredTags.length > 0) {
+            e.preventDefault();
+            addTag(filteredTags[0]);
+        } else if (e.key === 'Escape') {
+            setShowDropdown(false);
+        }
+    };
+
+    // Add tag to preferences
+    const addTag = (tag) => {
+        if (!preferences.includes(tag)) {
+            setPreferences([...preferences, tag]);
+        }
+        setTagInput('');
+        setShowDropdown(false);
+    };
+
+    // Remove tag from preferences
+    const removeTag = (tag) => {
+        setPreferences(preferences.filter(t => t !== tag));
+    };
+
+
+
+     // 2) Handler: call the /recommend endpoint
+    // ----------------------------------------
+    const fetchRecommendations = async () => {
+        setLoading(true)
+        setError(null)
+
+        const payload = {
+        user: {
+            profession,
+            preferences,
+            quiz: quizResult
+        }
+        }
+
+        try {
+        const res = await fetch('http://127.0.0.1:8000/recommend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        if (!res.ok) throw new Error(`API error ${res.status}`)
+        const data = await res.json()
+        setRecommendations(data.recommendations)
+        } catch (err) {
+        console.error('🎭 Oops in fetchRecommendations:', err)
+        setError('Failed to load recommendations. Check the console for clues!')
+        } finally {
+        setLoading(false)
+        }
+    }
+
+    return(
         <div className="w-full h-full">
             <header className="py-4 bg-black sm:py-6">
                 <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -14,7 +107,7 @@ const LandingPage2 = () => {
                                 <img className="w-auto h-9" src="https://landingfoliocom.imgix.net/store/collection/dusk/images/logo.svg" alt="" />
                             </a>
                         </div>
-
+        
                         <div className="flex md:hidden">
                             <button 
                                 type="button" 
@@ -33,20 +126,20 @@ const LandingPage2 = () => {
                                 )}
                             </button>
                         </div>
-
+        
                         <nav className="hidden ml-10 mr-auto space-x-10 lg:ml-20 lg:space-x-12 md:flex md:items-center md:justify-start">
                             <a href="#" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"> Products </a>
                             <a href="#" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"> Features </a>
                             <a href="#" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"> Pricing </a>
                             <a href="#" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"> Support </a>
                         </nav>
-
+        
                         <div className="relative hidden md:items-center md:justify-center md:inline-flex group">
                             <div className="absolute transition-all duration-200 rounded-full -inset-px bg-gradient-to-r from-cyan-500 to-purple-500 group-hover:shadow-lg group-hover:shadow-cyan-500/50"></div>
                             <Link to="/quiz" className="relative inline-flex items-center justify-center px-6 py-2 text-base font-normal text-white bg-black border border-transparent rounded-full" role="button"> Take Free Test </Link>
                         </div>
                     </div>
-
+        
                     {expanded && (
                         <nav>
                             <div className="flex flex-col pt-8 pb-4 space-y-6">
@@ -61,8 +154,133 @@ const LandingPage2 = () => {
                             </div>
                         </nav>
                     )}
-                </div>
+                    </div>
             </header>
+
+            <section className="relative py-12 overflow-hidden bg-black sm:pb-16 lg:pb-20 xl:pb-24">
+                <div className="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
+                    <div className="grid items-center grid-cols-1 gap-y-12">
+                    <div>
+                        {/* ... existing content ... */}
+
+                        {/* 💡 Updated Tag Selection UI */}
+                        <div className="mt-8 sm:mt-12 text-white">
+                                <label htmlFor="tag-input" className="block mb-2 text-lg font-medium text-white">
+                                    Select Your Interests (Tags)
+                                </label>
+                                
+                                <div className="relative">
+                                    <div className="flex flex-wrap gap-2 p-3 bg-white rounded-lg min-h-[56px]">
+                                        {/* Selected Tags */}
+                                        {preferences.map(tag => (
+                                            <div 
+                                                key={tag} 
+                                                className="flex items-center px-3 py-1 text-sm bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full text-white"
+                                            >
+                                                {tag}
+                                                <button 
+                                                    type="button" 
+                                                    className="ml-2 text-white hover:text-gray-200 focus:outline-none"
+                                                    onClick={() => removeTag(tag)}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                        
+                                        {/* Tag Input */}
+                                        <input
+                                            id="tag-input"
+                                            type="text"
+                                            value={tagInput}
+                                            onChange={(e) => {
+                                                setTagInput(e.target.value);
+                                                setShowDropdown(true);
+                                            }}
+                                            onKeyDown={handleKeyDown}
+                                            onFocus={() => setShowDropdown(true)}
+                                            className="flex-1 min-w-[120px] p-1 text-black bg-transparent border-none focus:ring-0 focus:outline-none"
+                                            placeholder={preferences.length ? "" : "Type to search tags..."}
+                                        />
+                                    </div>
+                                    
+                                    {/* Dropdown Suggestions */}
+                                    {showDropdown && filteredTags.length > 0 && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                            {filteredTags.map((tag, index) => (
+                                                <div
+                                                    key={tag}
+                                                    className={`p-3 text-black cursor-pointer ${
+                                                        index === activeTagIndex 
+                                                            ? 'bg-gradient-to-r from-cyan-100 to-purple-100' 
+                                                            : 'hover:bg-gray-100'
+                                                    }`}
+                                                    onClick={() => addTag(tag)}
+                                                >
+                                                    {tag}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <p className="mt-2 text-sm text-gray-400">
+                                    {preferences.length}/10 tags selected
+                                </p>
+                        </div>
+
+                    {/* 🔘 Submit Button */}
+                    <div className="mt-8 sm:mt-12">
+                        <button
+                            onClick={fetchRecommendations}
+                            disabled={loading}
+                            className={`px-6 py-3 text-base font-semibold rounded-full transition-all ${
+                                loading ? 'bg-gray-400' : 'bg-white hover:opacity-90'
+                            }`}
+                            >
+                            {loading ? (
+                                <span className="flex items-center">
+                                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">...</svg>
+                                Crunching numbers...
+                                </span>
+                            ) : (
+                                'Get My Course Picks!'
+                            )}
+                        </button>
+                    </div>
+
+                    {/* 🚨 Error Message */}
+                    {error && (
+                        <p className="mt-4 text-red-400">{error}</p>
+                    )}
+
+                    {/* 🎯 Show Recommendations */}
+                    {recommendations && (
+                        <div className="mt-10 space-y-6">
+                        <h2 className="text-2xl text-white">Your Top Picks:</h2>
+                        <ul className="space-y-4">
+                            {recommendations.map((rec) => (
+                            <li
+                                key={rec.id}
+                                className="p-4 bg-gray-800 rounded-lg flex justify-between items-center"
+                            >
+                                <div>
+                                <p className="text-lg font-medium text-white">{rec.title}</p>
+                                <p className="text-sm text-gray-400">({rec.id})</p>
+                                </div>
+                                <span className="text-sm font-semibold text-cyan-400">
+                                {rec.score}% match
+                                </span>
+                            </li>
+                            ))}
+                        </ul>
+                        </div>
+                    )}
+                    </div>
+                </div>
+                </div>
+            </section>
+
 
             <section className="relative py-12 overflow-hidden bg-black sm:pb-16 lg:pb-20 xl:pb-24">
                 <div className="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
@@ -248,7 +466,7 @@ const LandingPage2 = () => {
                 </div>
             </section>
         </div>
-    );
+                
+    )
 }
-
-export default LandingPage2;
+export default LandingPage3;
