@@ -148,7 +148,7 @@ const LandingPage2 = () => {
                             </div>
 
                             <div className="absolute inset-0">
-                                <img className="object-cover w-full h-full opacity-50" src="https://images.pexels.com/photos/14598237/pexels-photo-14598237.jpeg?auto=compress&cs=tinysrgb&w=1200&lazy=load" alt="texture" />
+                                {/* <img className="object-cover w-full h-full opacity-50" src="https://images.pexels.com/photos/14598237/pexels-photo-14598237.jpeg?auto=compress&cs=tinysrgb&w=1200&lazy=load" alt="texture" /> */}
                             </div>
 
                             <div className="relative flex flex-col items-center justify-center h-full py-12">
