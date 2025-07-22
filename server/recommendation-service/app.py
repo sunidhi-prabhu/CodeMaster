@@ -1,124 +1,147 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 import numpy as np
-import torch
-import json
-from pathlib import Path
-from transformers import BertTokenizer, BertModel
+from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+import pymongo
 
 app = FastAPI()
 
-# Tell FastAPI which origins (front-end URLs) are allowed
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173", 
-        "http://127.0.0.1:5173"  
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+db = mongo_client["elearning-ai"]
+course_embeddings_collection = db["courseEmbeddings"]
 
-# --- Load BERT once at startup ---
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-model     = BertModel.from_pretrained('bert-base-uncased')
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
-# --- Load courses from JSON ---
-courses_data = json.loads(Path("courses.json").read_text())
-
-# --- Pydantic models ---
 class Quiz(BaseModel):
-    score: float
-    course: str
+    score: Optional[float]
+    course: Optional[str]
 
 class UserProfile(BaseModel):
     profession: str
     preferences: List[str]
     quiz: Optional[Quiz]
 
+class Course(BaseModel):
+    id: str
+    title: str
+    description: str
+    tags: List[str]
+    profession: List[str]
+
 class RecommendationRequest(BaseModel):
     user: UserProfile
+    courses: List[Course]
 
-
-# --- Helper: get BERT embedding of text ---
-def get_bert_embedding(text: str) -> np.ndarray:
-    inputs = tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=512)
-    with torch.no_grad():
-        outputs = model(**inputs)
-    return outputs.last_hidden_state[:, 0, :].numpy()
-
-# Precompute once at startup (MASSIVE performance boost!)
-course_embeddings = {course['id']: get_bert_embedding(
-    f"Title: {course['title']}; "
-    f"Description: {course['description']}; "
-    f"Tags: {', '.join(course['tags'])}"
-) for course in courses_data}
-
-
-
-# --- Main recommendation endpoint ---
-@app.post("/recommend")
-async def recommend(request: RecommendationRequest) -> Dict[str, Any]:
-    user = request.user
-    print("******************************")
-    print("Received User request",user)
-    print("******************************")
-
-    # 🎭 1. Build the user text—with extra weight on preferences!
-    quiz_text = f"Quiz: {user.quiz.course} with score {user.quiz.score}%" if user.quiz else "No quiz"
-    prefs = ", ".join(user.preferences)
-    # mention preferences TWICE for extra weight
-    # More nuanced weighting
-    user_text = (
-        f"Profession: {user.profession}. "
-        f"Interests: {prefs}. " 
-        f"Technical skills: {prefs}. "  # Different context
-        f"Assessment: scored {user.quiz.score}% in {user.quiz.course}"
+def build_course_text(course):
+    if isinstance(course, dict):
+        title = course.get('title', '')
+        desc = course.get('description', '')
+        tags = ', '.join(course.get('tags', []))
+        profession = ', '.join(course.get('profession', []))
+    else:
+        title = course.title
+        desc = course.description
+        tags = ', '.join(course.tags)
+        profession = ', '.join(course.profession)
+    return (
+        f"Title: {title}, "
+        f"Description: {desc}, "
+        f"Tags: {tags}, "
+        f"Profession: {profession}"
     )
 
-    # 🔍 2. Filter courses by profession (only relevant actors take the stage)
-    filtered_courses = [
-        c for c in courses_data
-        if user.profession in c["profession"]
-        # and "C++" not in c["tags"]    # <-- Uncomment to exclude C++ courses!
-    ]
+def cache_course_embeddings(courses: List):
+    for course in courses:
+        course_text = build_course_text(course)
+        embedding = model.encode([course_text], show_progress_bar=False)[0]
+        course_id = course['id'] if isinstance(course, dict) else course.id
+        course_embeddings_collection.update_one(
+            {"courseId": course_id},
+            {"$set": {"embedding": embedding.tolist()}},
+            upsert=True
+        )
 
-    # ⚠️ If no course matches profession, fallback to all
-    if not filtered_courses:
-        filtered_courses = courses_data
+@app.on_event("startup")
+async def startup_event():
+    courses_collection = db["courses"]
+    courses = list(courses_collection.find())
+    if courses:
+        cache_course_embeddings(courses)
 
-    # 🪄 3. Embed user and each filtered course
-    course_vectors = [course_embeddings[course['id']] for course in filtered_courses]
-    
-    # Skip if no courses
-    if not course_vectors:
-        return {"recommendations": []}
-    user_vec = get_bert_embedding(user_text)
-    
-    
-    
+@app.get("/")
+async def root():
+    return {"message": "API is running"}
 
-    # 📊 4. Compute cosine similarities
-    course_matrix = np.vstack(course_vectors)
-    sims = cosine_similarity(user_vec, course_matrix)[0]
+@app.post("/recommend")
+async def recommend(request: RecommendationRequest):
+    try:
+        if not request.user.preferences or not request.courses:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid input: user preferences or courses missing"
+            )
 
-    # 🏆 5. Pick top 5 with scores
-    n = min(5, len(sims))  # Get min of 5 or actual number of courses
-    top_idxs = np.argsort(sims)[-n:][::-1]
-    recs = []
-    for idx in top_idxs:
-        course = filtered_courses[idx]
-        recs.append({
-            "id":    course["id"],
-            "title": course["title"],
-            "score": round(float(sims[idx]) * 100, 2)  # % match
-        })
+        # Normalize preferences for strict matching
+        user_prefs = set(pref.strip().lower() for pref in request.user.preferences)
+        # Use both phrase/tag exact and semantic filtering
+        strict_courses = [
+            course for course in request.courses
+            if any(
+                (pref in [t.strip().lower() for t in course.tags]) or
+                pref in (course.title.lower() + " " + course.description.lower())
+                for pref in user_prefs
+            )
+        ]
+        filtered_courses = strict_courses or request.courses
 
-    print(f"Filtered courses: {len(filtered_courses)}")
-    print(f"Recommendations: {len(recs)}")
-    # 📬 Return recommendations + why they shined
-    return {"recommendations": recs}
+        quiz_part = (
+            f"Quiz: {request.user.quiz.course} with score {request.user.quiz.score}%"
+            if request.user.quiz else "No quiz"
+        )
+        user_text = (
+            f"Profession: {request.user.profession}, "
+            f"Preferences: {', '.join(request.user.preferences)}, {quiz_part}"
+        )
+        user_embedding = model.encode([user_text], show_progress_bar=False)[0]
+        course_ids = [course.id for course in filtered_courses]
+        course_embeddings = []
+        for course in filtered_courses:
+            doc = course_embeddings_collection.find_one({"courseId": course.id})
+            if doc and "embedding" in doc:
+                course_embeddings.append(np.array(doc["embedding"]))
+            else:
+                course_text = build_course_text(course)
+                embedding = model.encode([course_text], show_progress_bar=False)[0]
+                course_embeddings.append(embedding)
+                course_embeddings_collection.update_one(
+                    {"courseId": course.id},
+                    {"$set": {"embedding": embedding.tolist()}},
+                    upsert=True
+                )
+        course_embeddings = np.array(course_embeddings)
+        similarities = cosine_similarity([user_embedding], course_embeddings)[0]
+
+        # Strongly boost for exact DSA tags/matches
+        for i, course in enumerate(filtered_courses):
+            course_tags = set(t.strip().lower() for t in course.tags)
+            if any(pref == t for pref in user_prefs for t in course_tags):
+                similarities[i] *= 1.25
+            # Also boost for phrase in course title
+            if any(pref in course.title.strip().lower() for pref in user_prefs):
+                similarities[i] *= 1.1
+
+        NUM_RECOMMEND = 10
+        # Enforce a threshold to drop irrelevant entries
+        min_score = np.percentile(similarities, 80) if len(similarities) > 10 else max(similarities) * 0.6
+        idx_sorted = np.argsort(similarities)[::-1]
+        top_courses = [filtered_courses[i] for i in idx_sorted if similarities[i] >= min_score][:NUM_RECOMMEND]
+
+        if not top_courses:
+            top_indices = np.argsort(similarities)[-NUM_RECOMMEND:][::-1]
+            top_courses = [filtered_courses[i] for i in top_indices if i < len(filtered_courses)]
+
+        return {"recommendations": [c.dict() if hasattr(c, "dict") else c for c in top_courses]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
