@@ -6,6 +6,10 @@ server/node_modules/
 
 # Python
 server/recommendation-service/venv/
+server/recommendation-service/__pycache__/
+server/chatbotBE/venv/
+server/chatbotBE/.env
+server/chatbotBE/__pycache__/
 __pycache__/
 *.pyc
 *.pyo

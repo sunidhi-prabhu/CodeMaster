@@ -5,7 +5,7 @@ import LandingPage3 from './pages/LandingPage3';
 import QuizPage from './pages/QuizPage';
 import ResultsPage from './pages/ResultsPage';
 // import CoursesPage from './pages/CoursesPage';
-
+import ChatPage from './features/chat/pages/ChatPage';
 function App() {
   return (
     <Router>
@@ -15,6 +15,8 @@ function App() {
         { <Route path="/quiz" element={<QuizPage />} /> }
         <Route path="/results" element={<ResultsPage />} />
         {/* <Route path="/courses" element={<CoursesPage />} /> */}
+        <Route path="/chatbot" element={<ChatPage />} />
+
       </Routes>
     </Router>
   );
